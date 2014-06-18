@@ -25,9 +25,6 @@
 # deterministically (resolved in Chef 11).
 node.load_attribute_by_short_filename('source', 'nginx') if node.respond_to?(:load_attribute_by_short_filename)
 
-nginx_url = node['nginx']['source']['url'] ||
-  "http://nginx.org/download/nginx-#{node['nginx']['source']['version']}.tar.gz"
-
 node.set['nginx']['binary']          = node['nginx']['source']['sbin_path']
 node.set['nginx']['daemon_disable']  = true
 
@@ -43,8 +40,8 @@ include_recipe 'nginx::ohai_plugin'
 include_recipe 'nginx::commons_dir'
 include_recipe 'nginx::commons_script'
 include_recipe 'build-essential::default'
-
-src_filepath  = "#{Chef::Config['file_cache_path'] || '/tmp'}/nginx-#{node['nginx']['source']['version']}.tar.gz"
+file_name = "nginx-#{node['nginx']['source']['version']}.tar.gz"
+src_filepath  = "#{Chef::Config['file_cache_path'] || '/tmp'}/" + file_name
 packages = value_for_platform_family(
   %w(rhel fedora) => %w(pcre-devel openssl-devel),
   %w(gentoo)      => [],
@@ -55,18 +52,19 @@ packages.each do |name|
   package name
 end
 
-remote_file nginx_url do
-  source   nginx_url
-  checksum node['nginx']['source']['checksum']
-  path     src_filepath
-  backup   false
-end
-
 node.run_state['nginx_force_recompile'] = false
 node.run_state['nginx_configure_flags'] =
   node['nginx']['source']['default_configure_flags'] | node['nginx']['configure_flags']
 
 include_recipe 'nginx::commons_conf'
+
+cookbook_file src_filepath do
+  source file_name
+  owner  'root'
+  group  node['root_group']
+  mode   '0644'
+  notifies :reload, 'service[nginx]'
+end
 
 cookbook_file "#{node['nginx']['dir']}/mime.types" do
   source 'mime.types'
