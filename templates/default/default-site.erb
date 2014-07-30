@@ -1,5 +1,5 @@
 server {
-    listen   80;
+    listen   <%= node['nginx']['port'] %>;
     server_name  <%= node['hostname'] %>;
     charset ugf-8;
     access_log  <%= node['nginx']['log_dir'] %>/localhost.access.log;
@@ -13,6 +13,6 @@ server {
     location / {
         root   <%= node['nginx']['default_root'] %>;
         index  index.html index.htm;
-        proxy_pass   http://localhost:8080;
+        proxy_pass   http://localhost:<%= node['smoothie']['port'] %>;
     }
 }
