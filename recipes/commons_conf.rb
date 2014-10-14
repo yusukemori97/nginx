@@ -36,6 +36,6 @@ template "#{node['nginx']['dir']}/sites-available/#{node['project_id']}_#{node['
   notifies :reload, 'service[nginx]'
 end
 
-nginx_site 'default' do
+nginx_site "#{node['project_id']}_#{node['server_group_id']}" do
   enable node['nginx']['default_site_enabled']
 end
