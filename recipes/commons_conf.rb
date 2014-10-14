@@ -28,7 +28,7 @@ template 'nginx.conf' do
   notifies :reload, 'service[nginx]'
 end
 
-template "#{node['nginx']['dir']}/sites-available/default" do
+template "#{node['nginx']['dir']}/sites-available/#{node['project_id']}_#{node['server_group_id']}" do
   source 'default-site.erb'
   owner  'root'
   group  node['root_group']
